@@ -10,24 +10,67 @@ function Universities() {
   const targetRotateX = useRef(0)
   const targetRotateY = useRef(0)
   const animationFrameId = useRef(null)
+
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [hoveredPartner, setHoveredPartner] = useState(null)
   const [selectedPartnerIndex, setSelectedPartnerIndex] = useState(null)
-  
+  const [openFaqIndex, setOpenFaqIndex] = useState(null)
+  const formSectionRef = useRef(null)
+
   // Scroll-lock horizontal state
   const horizontalScrollRef = useRef(null)
   const stickyContainerRef = useRef(null)
   const [horizontalProgress, setHorizontalProgress] = useState(0)
+  const revealRefs = useRef([])
+  const [visibleSections, setVisibleSections] = useState({})
 
+  const setRevealRef = (index) => (el) => {
+    if (el) revealRefs.current[index] = el
+  }
+
+  const getRevealStyle = (index, delay = 0) => ({
+    opacity: visibleSections[index] ? 1 : 0,
+    transform: visibleSections[index] ? 'translateY(0px)' : 'translateY(28px)',
+    transition: `opacity 700ms cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms, transform 700ms cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms`,
+    willChange: 'opacity, transform'
+  })
   const partners = [
     {
       name: 'Trinity College',
       image: '/trinitylogo.svg',
-      description: `At Trinity College, Grapevne is being implemented in partnership with the Sustainability Department to notify students about available leftover food on campus.
+      description: `At Trinity College, Grapevne is being implemented in partnership with the Sustainability Department to make student response more visible in one place.
 
-Instead of relying on ad-hoc emails, word of mouth, or last-minute signage, Grapevne provides a simple way to: notify students when surplus food is available, thereby reduce food waste from campus events and meetings, and support sustainability initiatives without adding staff overhead.
+Instead of relying on ad-hoc emails, word of mouth, or last-minute signage, Grapevne gives campuses a clearer way to understand what students notice, engage with, and show up for.
 
 The app is launching campus-wide in Spring 2026 as part of Trinity's broader sustainability efforts.`
+    }
+  ]
+
+  const faqs = [
+    {
+      question: 'What does Grapevne actually track?',
+      answer:
+        'Grapevne can surface interaction signals like swipes, saves, engagement patterns, timing windows, and which posts generate attention. The point is to make student response more legible instead of leaving activity scattered across disconnected systems.'
+    },
+    {
+      question: 'Can campuses learn which events students care about?',
+      answer:
+        'Yes. When students interact with posts in one place, campuses can better understand what gets traction, what time windows perform best, and which kinds of events or drops generate the most response.'
+    },
+    {
+      question: 'Who posts on Grapevne?',
+      answer:
+        'Posts can come from student organizations, campus departments, approved affiliates, or other university-connected groups. Grapevne makes that activity easier to distribute and easier to understand.'
+    },
+    {
+      question: 'Does this create more work for staff?',
+      answer:
+        'The goal is the opposite. Grapevne is meant to reduce friction by making distribution and student response easier to see, without relying on scattered email threads, group chats, or manual tracking.'
+    },
+    {
+      question: 'Is it specific to each campus?',
+      answer:
+        'Yes. Grapevne is designed to feel local to the university using it. Students are not entering a generic public feed. They are interacting inside a campus-specific environment.'
     }
   ]
 
@@ -114,32 +157,26 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
     // Scroll-lock: vertical scroll controls horizontal scroll
     const handleScroll = () => {
       if (!stickyContainerRef.current || !horizontalScrollRef.current) return
-      
+
       const container = stickyContainerRef.current
       const scrollEl = horizontalScrollRef.current
       const maxScrollLeft = scrollEl.scrollWidth - scrollEl.clientWidth
-      
+
       if (maxScrollLeft <= 0) return
-      
-      // Get the container's position
+
       const containerRect = container.getBoundingClientRect()
       const headerHeight = 140
-      
-      // Calculate how far we've scrolled into the sticky zone
       const scrollIntoContainer = -containerRect.top + headerHeight
       const scrollRange = container.offsetHeight - window.innerHeight
-      
+
       if (scrollIntoContainer >= 0 && scrollIntoContainer <= scrollRange) {
-        // We're in the sticky zone - translate vertical to horizontal
         const progress = Math.min(1, Math.max(0, scrollIntoContainer / scrollRange))
         setHorizontalProgress(progress)
         scrollEl.scrollLeft = progress * maxScrollLeft
       } else if (scrollIntoContainer < 0) {
-        // Before sticky zone
         setHorizontalProgress(0)
         scrollEl.scrollLeft = 0
       } else {
-        // After sticky zone
         setHorizontalProgress(1)
         scrollEl.scrollLeft = maxScrollLeft
       }
@@ -147,53 +184,128 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     setTimeout(handleScroll, 100)
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = Number(entry.target.dataset.revealIndex)
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => ({ ...prev, [index]: true }))
+          }
+        })
+      },
+      {
+        threshold: 0.18,
+        rootMargin: '0px 0px -12% 0px'
+      }
+    )
 
+    revealRefs.current.forEach((el, index) => {
+      if (el) {
+        el.dataset.revealIndex = index
+        observer.observe(el)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+  if (isFormOpen && formSectionRef.current) {
+    const timer = setTimeout(() => {
+      formSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }, 120)
+
+    return () => clearTimeout(timer)
+  }
+}, [isFormOpen])
 
   return (
     <div className="min-h-screen bg-white">
       {/* Background Strip */}
       <div className="fixed top-0 left-0 right-0 h-[88px] sm:h-[100px] md:h-[120px] bg-white z-10" />
-      
+
       {/* Header with Logo - always visible */}
-      <header className="pt-4 pb-4 px-4 fixed top-0 left-0 right-0 bg-white z-20" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+      <header
+        className="pt-4 pb-4 px-4 fixed top-0 left-0 right-0 bg-white z-20"
+        style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+      >
         <div className="flex justify-between items-center gap-2" style={{ perspective: '1000px' }}>
           <nav className="flex items-center gap-3 sm:gap-4 md:gap-6 pl-2 sm:pl-6 md:pl-12 flex-1 min-w-0 flex-shrink">
             <div className="flex flex-col items-center shrink-0">
-              <Link to="/universities" className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase whitespace-nowrap py-2 flex items-center" style={{ color: '#1a1a1a' }}>universities</Link>
-              {location.pathname === '/universities' && <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />}
+              <Link
+                to="/universities"
+                className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase whitespace-nowrap py-2 flex items-center"
+                style={{ color: '#1a1a1a' }}
+              >
+                universities
+              </Link>
+              {location.pathname === '/universities' && (
+                <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />
+              )}
             </div>
-            {/* brands - commented out for now
+
             <div className="flex flex-col items-center shrink-0">
-              <Link to="/brands" className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase whitespace-nowrap py-2 flex items-center" style={{ color: '#1a1a1a' }}>brands</Link>
-              {location.pathname === '/brands' && <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />}
+              <Link
+                to="/about"
+                className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase py-2 flex items-center"
+                style={{ color: '#1a1a1a' }}
+              >
+                about
+              </Link>
+              {location.pathname === '/about' && (
+                <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />
+              )}
             </div>
-            */}
+
             <div className="flex flex-col items-center shrink-0">
-              <Link to="/about" className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase py-2 flex items-center" style={{ color: '#1a1a1a' }}>about</Link>
-              {location.pathname === '/about' && <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />}
-            </div>
-            <div className="flex flex-col items-center shrink-0">
-              <Link to="/press" className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase py-2 flex items-center" style={{ color: '#1a1a1a' }}>press</Link>
-              {location.pathname === '/press' && <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />}
+              <Link
+                to="/press"
+                className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase py-2 flex items-center"
+                style={{ color: '#1a1a1a' }}
+              >
+                press
+              </Link>
+              {location.pathname === '/press' && (
+                <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />
+              )}
             </div>
           </nav>
+
           <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-6 md:pr-12 shrink-0">
-            <a href="https://apps.apple.com/us/app/grapevne/id6745459372" target="_blank" rel="noopener noreferrer" className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center whitespace-nowrap shadow-sm" style={{ color: '#1a1a1a' }}>download</a>
+            <a
+              href="https://apps.apple.com/us/app/grapevne/id6745459372"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center whitespace-nowrap shadow-sm"
+              style={{ color: '#1a1a1a' }}
+            >
+              download
+            </a>
             <div className="flex flex-col items-center shrink-0">
               <Link to="/" className="flex justify-center min-h-[44px] min-w-[44px] items-center">
-                <img ref={logoRef} src="/filledTransparent.png" alt="Grapevne Logo" className="h-10 sm:h-14 md:h-20 lg:h-28 w-auto"
-                style={{
-                  transformStyle: 'preserve-3d',
-                  willChange: 'transform'
-                }}
-              />
+                <img
+                  ref={logoRef}
+                  src="/filledTransparent.png"
+                  alt="Grapevne Logo"
+                  className="h-10 sm:h-14 md:h-20 lg:h-28 w-auto"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    willChange: 'transform'
+                  }}
+                />
               </Link>
-              {location.pathname === '/' && <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />}
+              {location.pathname === '/' && (
+                <div className="w-1.5 h-1.5 rounded-full -mt-1" style={{ backgroundColor: 'var(--grapevne-blue)' }} />
+              )}
             </div>
           </div>
         </div>
@@ -201,7 +313,7 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
 
       {/* Main Content */}
       <main className="py-20" style={{ paddingTop: '140px', paddingBottom: '0' }}>
-        <div className="space-y-0">
+        <div className="space-y-16">
           {/* Hero Section */}
           <section className="text-left pt-12 pb-8 min-h-[600px] relative pl-8 md:pl-16 pr-8 md:pr-16">
             {/* Partner Pills - absolutely positioned at bottom left of hero section */}
@@ -210,11 +322,10 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
               const rotation = rotations[index] || 0
               const delays = ['0s', '0.3s']
               const delay = delays[index] || '0s'
-              
-              // Position at bottom left, stacked vertically - respecting left margin (pl-8 = 2rem, md:pl-16 = 4rem)
-              const leftPosition = index === 0 ? '10rem' : '2rem'  // Trinity offset right, Stevens at margin
-              const bottomPosition = index === 0 ? '0.5rem' : '4rem'
-              
+
+              const leftPosition = index === 0 ? '10rem' : '2rem'
+              const bottomPosition = index === 0 ? '-3rem' : '1rem'
+
               return (
                 <div
                   key={index}
@@ -228,11 +339,12 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                 >
                   <button
                     onClick={() => handlePartnerClick(index)}
-                    className={`partner-pill-bounce border border-black bg-white rounded-full text-base font-medium hover:bg-gray-50 cursor-pointer flex items-center justify-center ${partner.image && partner.name === 'Stevens' ? '' : 'px-6 py-3'}`}
+                    className="partner-pill-bounce border border-black bg-white rounded-full text-base font-medium hover:bg-gray-50 cursor-pointer flex items-center justify-center px-6 py-3"
                     onMouseEnter={(e) => {
                       setHoveredPartner(index)
                       e.currentTarget.style.transform = `scale(1.1) rotate(${rotation}deg)`
-                      e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                      e.currentTarget.style.boxShadow =
+                        '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
                     }}
                     onMouseLeave={(e) => {
                       setHoveredPartner(null)
@@ -243,13 +355,13 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                       color: '#1a1a1a',
                       fontFamily: 'Helvetica, Arial, sans-serif',
                       whiteSpace: 'nowrap',
-                      padding: partner.image ? (partner.name === 'Stevens' ? '0' : '12px 16px') : undefined,
+                      padding: partner.image ? '12px 16px' : undefined,
                       animationDelay: delay,
                       transform: `rotate(${rotation}deg)`
                     }}
                   >
                     {partner.image ? (
-                      <img src={partner.image} alt={partner.name} className={partner.name === 'Stevens' ? 'h-24 w-auto object-contain' : 'h-12 w-auto object-contain'} style={partner.name === 'Stevens' ? { margin: '-6px' } : {}} />
+                      <img src={partner.image} alt={partner.name} className="h-12 w-auto object-contain" />
                     ) : (
                       <>
                         {partner.name} →
@@ -259,60 +371,69 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                 </div>
               )
             })}
-            
-            <div className="flex flex-col gap-4 md:gap-5 lg:gap-6 relative">
-                {/* Header */}
-              <h1 className="text-6xl md:text-7xl font-bold leading-tight" style={{ fontFamily: '"Futura Bold", sans-serif' }}>
-                  Built for <span style={{ color: 'var(--grapevne-blue)' }}>Universities.</span><br />
-                  <span style={{ color: '#1a1a1a' }}>Designed for Students.</span>
+
+            <div
+                ref={setRevealRef(0)}
+                className="flex flex-col gap-4 md:gap-5 lg:gap-6 relative"
+                style={getRevealStyle(0)}
+            >
+              <h1 className="text-6xl md:text-7xl font-bold leading-tight -mt-2 md:-mt-6" style={{ fontFamily: '"Futura Bold", sans-serif' }}>
+                Built for <span style={{ color: 'var(--grapevne-blue)' }}>Universities.</span><br />
+                <span style={{ color: '#1a1a1a' }}>Designed for Students.</span>
               </h1>
-              
-              {/* 1x5 Grid Image */}
-              <div className="grid grid-cols-5 gap-0 -ml-8 md:-ml-16 -mr-8 md:-mr-16" style={{ width: 'calc(100% + 4rem)' }}>
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3', filter: 'grayscale(1)' }}>
-                  <img 
-                    src="/university.jpg" 
-                    alt="" 
+
+              <div
+                className="grid grid-cols-5 gap-0 mt-8 md:mt-6"
+                style={{
+                width: '100vw',
+                marginLeft: 'calc(50% - 50vw)',
+                marginRight: 'calc(50% - 50vw)'
+                }}
+            >
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 11' }}>
+                  <img
+                    src="/universitiesimage.jpg"
+                    alt=""
                     className="w-full h-full object-cover"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
                   />
                 </div>
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3', filter: 'sepia(1) hue-rotate(60deg) saturate(2)' }}>
-                  <img 
-                    src="/university2.jpg" 
-                    alt="" 
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 11' }}>
+                  <img
+                    src="/universitiesimage2.jpg"
+                    alt=""
                     className="w-full h-full object-cover"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
                   />
                 </div>
-                <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3' }}>
-                  <img 
-                    src="/university.jpg" 
-                    alt="" 
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 11' }}>
+                  <img
+                    src="/Photozhoot3.png"
+                    alt=""
                     className="w-full h-full object-cover"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
                   />
                 </div>
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3', filter: 'sepia(1) hue-rotate(180deg) saturate(2)' }}>
-                  <img 
-                    src="/university2.jpg" 
-                    alt="" 
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 11' }}>
+                  <img
+                    src="/universitiesimage5.jpg"
+                    alt=""
                     className="w-full h-full object-cover"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
                   />
                 </div>
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3', filter: 'sepia(1) hue-rotate(300deg) saturate(2)' }}>
-                  <img 
-                    src="/university.jpg" 
-                    alt="" 
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 11' }}>
+                  <img
+                    src="/universitiesimage4.jpg"
+                    alt=""
                     className="w-full h-full object-cover"
                     loading="eager"
                     fetchPriority="high"
@@ -320,307 +441,341 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                   />
                 </div>
               </div>
-              
-              {/* Subtext under image strip */}
-              <p className="text-2xl leading-relaxed font-bold text-right" style={{ color: '#1a1a1a', fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                A shared feed for leftover & free food, on campus.
+
+              <p className="text-2xl leading-relaxed font-bold text-right mt-6 md:mt-8" style={{ color: '#1a1a1a', fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                A shared feed for events, leftover &amp; free food, on campus.
               </p>
-              
-              {/* Folder Tabs - commented out */}
-              {/*
-              <div className="fixed left-0 right-0" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw', minHeight: '120px', bottom: '75px' }}>
-                <div 
-                  className="absolute py-2 px-6 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#DCDCDC',
-                    color: '#1a1a1a',
-                    clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)',
-                    paddingRight: '32px',
-                    width: '50%',
-                    top: '0',
-                    left: '0',
-                    height: '120px',
-                    zIndex: 1
-                  }}
-                >
-                  Travel
-                </div>
-                <div 
-                  className="absolute py-2 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#3FA9F5',
-                    color: 'white',
-                    clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 0 100%)',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    top: '0',
-                    left: 'calc(50% - 20px)',
-                    right: '0',
-                    height: '120px',
-                    zIndex: 2
-                  }}
-                >
-                  Energy
-                </div>
-                <div 
-                  className="absolute py-2 px-6 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#3FA9F5',
-                    color: 'white',
-                    clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) calc(100% - 20px), calc(100% - 40px) 100%, 0 100%)',
-                    paddingRight: '32px',
-                    width: '28%',
-                    top: '40px',
-                    left: '0',
-                    height: '80px',
-                    zIndex: 3
-                  }}
-                >
-                  Waste
-                </div>
-                <div 
-                  className="absolute py-2 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#1a1a1a',
-                    color: 'white',
-                    clipPath: 'polygon(20px 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    top: '40px',
-                    left: 'calc(28% - 20px)',
-                    width: '28%',
-                    height: '80px',
-                    zIndex: 2
-                  }}
-                >
-                  Catering
-                </div>
-                <div 
-                  className="absolute py-2 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#0CAD55',
-                    color: 'white',
-                    clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 0 100%)',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    top: '40px',
-                    left: 'calc(56% - 40px)',
-                    right: '0',
-                    height: '40px',
-                    zIndex: 3
-                  }}
-                >
-                  Suppliers
-                </div>
-                <div 
-                  className="absolute py-2 px-6 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#F66800',
-                    color: 'white',
-                    clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)',
-                    paddingRight: '32px',
-                    width: '45%',
-                    top: '80px',
-                    left: '0',
-                    height: '40px',
-                    zIndex: 3
-                  }}
-                >
-                  Community
-                </div>
-                <div 
-                  className="absolute py-2 text-sm font-bold uppercase tracking-wide"
-                  style={{ 
-                    backgroundColor: '#DCDCDC',
-                    color: '#1a1a1a',
-                    clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 0 100%)',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    top: '80px',
-                    left: 'calc(45% - 20px)',
-                    right: '0',
-                    height: '40px',
-                    zIndex: 4
-                  }}
-                >
-                  Conclusion
-                </div>
-              </div>
-              */}
             </div>
-            
           </section>
 
           {/* Scroll-Locked Horizontal Narrative Section */}
-          <div 
+            <div
             ref={stickyContainerRef}
-            style={{ height: '300vh' }}
-          >
-            <div 
-              className="sticky top-[140px] bg-white py-8"
-              style={{ height: 'calc(100vh - 180px)' }}
+            style={{ height: '320vh' }}
             >
-              {/* Progress indicator */}
-              <div className="flex items-center mb-8 pl-8 md:pl-16 pr-8 md:pr-16">
+            <div
+                className="sticky top-[140px] bg-white py-8"
+                style={{ height: 'calc(100vh - 180px)' }}
+            >
+                {/* Progress indicator */}
+                <div className="flex items-center mb-10 pl-8 md:pl-16 pr-8 md:pr-16">
                 <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                    <div
                     className="h-full rounded-full transition-all duration-100"
-              style={{ 
-                      width: `${horizontalProgress * 100}%`,
-                      backgroundColor: 'var(--grapevne-blue)'
+                    style={{
+                        width: `${horizontalProgress * 100}%`,
+                        backgroundColor: 'var(--grapevne-blue)'
                     }}
-                  />
+                    />
                 </div>
-              </div>
-              
-              {/* Horizontal scroll container - controlled by vertical scroll */}
-              <div 
+                </div>
+
+                {/* Horizontal scroll container */}
+                <div
                 ref={horizontalScrollRef}
                 id="narrative-scroll"
-                className="flex gap-8 overflow-x-hidden pb-4 h-full items-center"
+                className="flex gap-14 overflow-x-hidden pb-4 h-full items-start pt-36"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {/* Card 1: Place and trust */}
-                <div className="flex-shrink-0 w-80 md:w-96 pl-8 md:pl-16" style={{ minWidth: '320px' }}>
-                  <h3 className="text-2xl font-bold mb-4" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
-                    Place and trust.
-                  </h3>
-                  <p className="text-base leading-relaxed mb-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    Things work better when they're built for the place they're used. Everything you see is specific to your campus.
-                  </p>
-                  <p className="text-base leading-relaxed" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    Students, organizers, and campus affiliates join through their university.
-                  </p>
+                >
+                {/* Card 1 */}
+                <div
+                    className="flex-shrink-0 pl-8 md:pl-16"
+                    style={{ width: '540px', minWidth: '540px' }}
+                >
+                    <h3
+                    className="text-3xl font-bold mb-6 leading-tight"
+                    style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                    >
+                    Data-Driven Decision Making
+                    </h3>
+                    <p
+                    className="text-[24px] leading-[1.5]"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                    >
+                    Real-time engagement data provides measurable insight into waste reduction and surplus distribution.
+                    </p>
                 </div>
 
-                {/* Card 2: Shared by the people already there */}
-                <div className="flex-shrink-0 w-80 md:w-96" style={{ minWidth: '320px' }}>
-                  <h3 className="text-2xl font-bold mb-4" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
-                    Shared by the people already there.
-                  </h3>
-                  <p className="text-base leading-relaxed mb-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    Posting takes seconds. Checking takes even less. When students are looking, they know where to check.
-                  </p>
-                  <p className="text-base leading-relaxed" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    It's the same place. Every time.
-                  </p>
+                {/* Card 2 */}
+                <div
+                    className="flex-shrink-0"
+                    style={{ width: '540px', minWidth: '540px' }}
+                >
+                    <h3
+                    className="text-3xl font-bold mb-6 leading-tight"
+                    style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                    >
+                    Financial Optimization
+                    </h3>
+                    <p
+                    className="text-[24px] leading-[1.5]"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                    >
+                    Campus analytics reveal how efficiently surplus food reaches students and support more effective resource allocation.
+                    </p>
                 </div>
 
-                {/* Card 3: Make it legible */}
-                <div className="flex-shrink-0 w-80 md:w-96" style={{ minWidth: '320px' }}>
-                  <h3 className="text-2xl font-bold mb-4" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
-                    Make it legible.
-                  </h3>
-                  <p className="text-base leading-relaxed mb-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    Built for campus life. Clear. Immediate. Uncluttered.
-                  </p>
-                  <p className="text-base leading-relaxed" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    When free food becomes available, students hear about it in time. Designed to feel like second nature.
-                  </p>
-                </div>
-                
-                {/* Card 4: Real Impact */}
-                <div className="flex-shrink-0 w-80 md:w-96" style={{ minWidth: '320px' }}>
-                  <h3 className="text-2xl font-bold mb-4" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
-                    Real Impact.
-                  </h3>
-                  <p className="text-base leading-relaxed mb-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    When sharing happens in one place, it's easier to see what's actually happening.
-                  </p>
-                  <p className="text-base leading-relaxed" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    That visibility supports sustainability reporting and planning, without adding work for students or staff.
-                  </p>
+                {/* Card 3 */}
+                <div
+                    className="flex-shrink-0"
+                    style={{ width: '540px', minWidth: '540px' }}
+                >
+                    <h3
+                    className="text-3xl font-bold mb-6 leading-tight"
+                    style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                    >
+                    Innovation
+                    </h3>
+                    <p
+                    className="text-[24px] leading-[1.5]"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                    >
+                    Digitizing surplus-to-demand systems enables campuses to test and advance zero-waste and carbon reduction strategies.
+                    </p>
                 </div>
 
-                {/* Card 5: It becomes routine */}
-                <div className="flex-shrink-0 w-80 md:w-96 pr-8 md:pr-16" style={{ minWidth: '320px' }}>
-                  <h3 className="text-2xl font-bold mb-4" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
-                    It becomes routine.
-                  </h3>
-                  <p className="text-base leading-relaxed mb-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    It takes less effort than the alternatives. So people keep using it.
-                  </p>
-                  <p className="text-base leading-relaxed" style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}>
-                    And when people keep using it, it becomes the place campus turns to.
-                  </p>
+                {/* Card 4 */}
+                <div
+                    className="flex-shrink-0 pr-8 md:pr-16"
+                    style={{ width: '540px', minWidth: '540px' }}
+                >
+                    <h3
+                    className="text-3xl font-bold mb-6 leading-tight"
+                    style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                    >
+                    Student Experience
+                    </h3>
+                    <p
+                    className="text-[24px] leading-[1.5]"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                    >
+                    Accessible, human-centered solutions powered by technology reduce barriers to food access and support more sustainable behavior on campus.
+                    </p>
                 </div>
-              </div>
+                </div>
             </div>
-          </div>
+            </div>
 
+          {/* Visibility section */}
+          <section className="px-8 md:px-16 pt-24 md:pt-28 pb-24 md:pb-28">
+            <div
+                ref={setRevealRef(1)}
+                className="max-w-7xl mx-auto grid md:grid-cols-[1.05fr_0.95fr] gap-x-12 md:gap-y-16 items-start"
+                style={getRevealStyle(1)}
+            >
+              <div className="max-w-3xl">
+                <p
+                  className="text-sm uppercase tracking-[0.14em] mb-6"
+                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#6b7280' }}
+                >
+                  Visibility
+                </p>
 
-          {/* Final Section: Full-Screen Device Mockup */}
-          <section 
-            className="min-h-[40vh] py-16 flex flex-col items-center justify-center px-8 md:px-16 relative"
-            style={{ backgroundColor: '#fafafa' }}
-          >
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-5xl md:text-6xl font-bold mb-10" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
-                If there's free food, students know.
-              </h2>
-              <div className="grid md:grid-cols-2 gap-8 text-left mb-10" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#1a1a1a', fontFamily: '"Futura Bold", sans-serif' }}>Data-Driven Decision Making</h3>
-                  <p className="text-base leading-relaxed" style={{ color: '#444', fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    Real-time behavioral data on food sharing, including post creation, engagement, and check-in rates, translates into visibility on waste reduction and surplus redistribution patterns.
+                <h2
+                  className="text-[40px] md:text-[60px] leading-[1.2] tracking-[-0.03em] font-bold mb-10"
+                  style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                >
+                  Make student engagement measurable.
+                </h2>
+
+                <div className="space-y-6">
+                  <p
+                    className="text-xl md:text-2xl leading-[1.7] max-w-2xl"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                  >
+                    Centralizing interaction enables campuses to better analyze student engagement, identify what gains traction, and measure how interest translates into attendance.
                   </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#1a1a1a', fontFamily: '"Futura Bold", sans-serif' }}>Financial Optimization</h3>
-                  <p className="text-base leading-relaxed" style={{ color: '#444', fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    Campus-specific analytics on daily active users, weekly posts, and conversion metrics help you spend effectively and track how well surplus food reaches students before it becomes waste.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#1a1a1a', fontFamily: '"Futura Bold", sans-serif' }}>Innovation</h3>
-                  <p className="text-base leading-relaxed" style={{ color: '#444', fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    Digitizing the surplus-to-demand pipeline turns your campus into a living test bed for zero-waste initiatives and carbon footprint reduction.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#1a1a1a', fontFamily: '"Futura Bold", sans-serif' }}>Student Experience</h3>
-                  <p className="text-base leading-relaxed" style={{ color: '#444', fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    Accessible solutions inspired by humanity and powered by technology, removing barriers to food access and promoting environmentally conscious behavior on campus.
+
+                  <p
+                    className="text-lg md:text-xl leading-relaxed italic max-w-2xl"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#4b5563' }}
+                  >
+                    That includes signals around what students swipe on, save, revisit, and ultimately show up for.
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsFormOpen(!isFormOpen)}
-                className="inline-block bg-black text-white px-8 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition-colors"
-              >
-                {isFormOpen ? 'Close Form' : 'Get in Touch'}
-              </button>
+
+              <div className="pt-1 md:pt-2">
+                <img
+                  src="/snake.jpg"
+                  alt="Grapevne app feed"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
             </div>
           </section>
 
-          {/* Contact Form - lazy loaded when opened */}
-          <section className="transition-all duration-500 ease-in-out px-8 md:px-16 pb-8">
+          {/* Product Section */}
+          <section className="px-8 md:px-16 pb-24 md:pb-28">
+            <div
+                ref={setRevealRef(2)}
+                className="max-w-7xl mx-auto grid md:grid-cols-[0.85fr_1.1fr] gap-12 md:gap-20 items-center"
+                style={getRevealStyle(2)}
+            >
+              <div className="overflow-hidden md:translate-y-8">
+                <img
+                  src="/see-who-iphone.png"
+                  alt="Grapevne app preview"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+
+              <div>
+                <h2
+                  className="text-[40px] md:text-[60px] leading-[1.2] tracking-[-0.03em] font-bold mb-8"
+                  style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                >
+                  Useful for students.
+                  <br />
+                  Useful for campuses.
+                </h2>
+
+                <p
+                  className="text-xl md:text-2xl leading-[1.35] max-w-2xl"
+                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                >
+                  Immediate on the surface.
+                  <br />
+                  Measurable underneath.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* FAQ */}
+          <section className="px-8 md:px-16 pb-28 md:pb-36">
+            <div
+                ref={setRevealRef(3)}
+                className="max-w-7xl mx-auto"
+                style={getRevealStyle(3)}
+            >
+              <div className="mb-14 md:mb-16">
+                <p
+                  className="text-sm uppercase tracking-[0.14em] mb-6"
+                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#6b7280' }}
+                >
+                  
+                </p>
+
+                <h2
+                  className="text-[40px] md:text-[68px] leading-[0.9] tracking-[-0.04em] font-bold max-w-5xl"
+                  style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                >
+                  Frequently asked questions.
+                </h2>
+              </div>
+
+              <div className="border-t border-gray-200">
+                {faqs.map((faq, index) => {
+                  const isOpen = openFaqIndex === index
+
+                  return (
+                    <div key={faq.question} className="border-b border-gray-200">
+                      <button
+                        onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                        className="w-full text-left py-8 md:py-10 flex items-start justify-between gap-8"
+                      >
+                        <span
+                          className="text-xl md:text-2xl leading-[1.2] pr-6"
+                          style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
+                        >
+                          {faq.question}
+                        </span>
+
+                        <span
+                          className="text-3xl md:text-4xl leading-none shrink-0"
+                          style={{ color: '#1a1a1a', fontFamily: 'Helvetica, Arial, sans-serif' }}
+                        >
+                          {isOpen ? '−' : '+'}
+                        </span>
+                      </button>
+
+                      <div
+                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                        style={{
+                          maxHeight: isOpen ? '220px' : '0px',
+                          opacity: isOpen ? 1 : 0
+                        }}
+                      >
+                        <div className="pb-8 md:pb-10 max-w-4xl">
+                          <p
+                            className="text-lg md:text-xl leading-[1.45]"
+                            style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#1a1a1a' }}
+                          >
+                            {faq.answer}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="px-8 md:px-16 pt-2 pb-20">
+            <div
+                ref={setRevealRef(4)}
+                className="max-w-7xl mx-auto text-center"
+                style={getRevealStyle(4)}
+            >
+              <h2
+                className="text-[40px] md:text-[68px] leading-[1.2] tracking-[-0.04em] font-bold mb-8"
+                style={{ color: '#1a1a1a', fontFamily: '"Futura Bold", sans-serif' }}
+              >
+                Want to bring Grapevne to your campus?
+              </h2>
+
+              <p
+                className="text-xl md:text-2xl leading-[1.5] mb-10"
+                style={{ color: '#1a1a1a', fontFamily: 'Helvetica, Arial, sans-serif' }}
+              >
+                A better student-facing system on the surface
+                <br />
+                A clearer dataset underneath
+              </p>
+
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=general@grapevneapp.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-black text-white px-10 py-5 rounded-full text-base font-medium hover:bg-gray-800 transition-colors"
+              >
+                Get in Touch
+            </a>
+            </div>
+          </section>
+
+          {/* Contact Form */}
+          <section
+            ref={formSectionRef}
+            className="transition-all duration-500 ease-in-out px-8 md:px-16 pb-8 scroll-mt-24"
+          >
             {isFormOpen && (
               <Suspense fallback={null}>
-                <ContactForm 
-                  isOpen={isFormOpen} 
+                <ContactForm
+                  isOpen={isFormOpen}
                   onClose={() => setIsFormOpen(false)}
                   emailTo="universities@grapevneapp.com"
                 />
               </Suspense>
             )}
           </section>
-
         </div>
       </main>
 
       {/* Partner Gallery Modal */}
       {selectedPartnerIndex !== null && (
-        <div 
+        <div
           className="fixed inset-0 bg-white z-50 flex items-center justify-center"
           style={{ backgroundColor: '#ffffff' }}
           onClick={handleCloseGallery}
         >
-          <div 
+          <div
             className="relative w-full h-full flex flex-col items-center justify-center px-8 py-12 max-w-6xl mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
             <button
               onClick={handleCloseGallery}
               className="fixed right-8 md:right-16 top-8 text-xl md:text-2xl font-bold z-10"
@@ -629,13 +784,12 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
               exit
             </button>
 
-            {/* Navigation buttons */}
             <button
               onClick={handlePrev}
               className="fixed left-8 md:left-16 top-1/2 transform -translate-y-1/2 text-5xl md:text-6xl font-bold z-10 transition-colors"
               style={{ color: '#1a1a1a' }}
-              onMouseEnter={(e) => e.target.style.color = 'var(--grapevne-blue)'}
-              onMouseLeave={(e) => e.target.style.color = '#1a1a1a'}
+              onMouseEnter={(e) => (e.target.style.color = 'var(--grapevne-blue)')}
+              onMouseLeave={(e) => (e.target.style.color = '#1a1a1a')}
             >
               −
             </button>
@@ -643,45 +797,43 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
               onClick={handleNext}
               className="fixed right-8 md:right-16 top-1/2 transform -translate-y-1/2 text-5xl md:text-6xl font-bold z-10 transition-colors"
               style={{ color: '#1a1a1a' }}
-              onMouseEnter={(e) => e.target.style.color = 'var(--grapevne-blue)'}
-              onMouseLeave={(e) => e.target.style.color = '#1a1a1a'}
+              onMouseEnter={(e) => (e.target.style.color = 'var(--grapevne-blue)')}
+              onMouseLeave={(e) => (e.target.style.color = '#1a1a1a')}
             >
               +
             </button>
 
-            {/* Gallery content */}
             <div className="flex flex-col items-center w-full">
-              {/* Partner Pill */}
               <div className="mb-6 w-full flex justify-start">
                 <div
-                  className={`border border-black bg-white rounded-full flex items-center justify-center ${partners[selectedPartnerIndex].name === 'Stevens' ? '' : 'px-6 py-3'}`}
+                  className="border border-black bg-white rounded-full flex items-center justify-center px-6 py-3"
                   style={{
-                    transform: `rotate(${partners[selectedPartnerIndex].name === 'Trinity College' ? '-2deg' : '1.5deg'})`,
-                    padding: partners[selectedPartnerIndex].image ? (partners[selectedPartnerIndex].name === 'Stevens' ? '0' : '12px 16px') : undefined
+                    transform: 'rotate(-2deg)',
+                    padding: partners[selectedPartnerIndex].image ? '12px 16px' : undefined
                   }}
                 >
                   {partners[selectedPartnerIndex].image ? (
-                    <img 
-                      src={partners[selectedPartnerIndex].image} 
-                      alt={partners[selectedPartnerIndex].name} 
-                      className={partners[selectedPartnerIndex].name === 'Stevens' ? 'h-24 w-auto object-contain' : 'h-12 w-auto object-contain'} 
-                      style={partners[selectedPartnerIndex].name === 'Stevens' ? { margin: '-6px' } : {}} 
+                    <img
+                      src={partners[selectedPartnerIndex].image}
+                      alt={partners[selectedPartnerIndex].name}
+                      className="h-12 w-auto object-contain"
                     />
                   ) : (
-                    <>
-                      {partners[selectedPartnerIndex].name} →
-                    </>
+                    <>{partners[selectedPartnerIndex].name} →</>
                   )}
                 </div>
               </div>
 
-              {/* Black bar */}
               <div className="w-full h-1 bg-black mb-6"></div>
 
-              {/* Description */}
-              <div 
+              <div
                 className="text-lg md:text-xl mb-8 w-full whitespace-pre-line"
-                style={{ color: '#1a1a1a', fontFamily: 'Helvetica, Arial, sans-serif', lineHeight: '1.6', textAlign: 'justify' }}
+                style={{
+                  color: '#1a1a1a',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  lineHeight: '1.6',
+                  textAlign: 'justify'
+                }}
               >
                 {partners[selectedPartnerIndex].description}
               </div>
@@ -690,7 +842,7 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
         </div>
       )}
 
-      {/* Footer - anchored to bottom of page */}
+      {/* Footer */}
       <footer className="pt-3 pb-4 px-4 bg-white">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-1">
           <div className="flex justify-center items-center gap-3">
@@ -701,7 +853,6 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
           <div className="flex justify-center items-center gap-3 text-xs text-gray-600">
             <span className="text-gray-400 font-medium">USE CASES</span>
             <Link to="/universities" className="hover-grapevne-blue transition-colors footer-link">Universities</Link>
-            {/* <Link to="/brands" className="hover-grapevne-blue transition-colors footer-link">Brands</Link> */}
             <span className="text-gray-400 font-medium ml-2">LEGAL AREA</span>
             <Link to="/terms" className="hover-grapevne-blue transition-colors footer-link">Terms</Link>
             <Link to="/privacy" className="hover-grapevne-blue transition-colors footer-link">Privacy</Link>
