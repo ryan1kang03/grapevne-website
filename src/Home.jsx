@@ -469,7 +469,7 @@ function Home() {
               <img
                 src="/one-swipe-iphone.png"
                 alt="Grapevne app - One swipe RSVP"
-                className="h-[480px] sm:h-[520px] md:h-[440px] lg:h-[540px] w-auto object-contain iphone-bounce max-h-[72vh] sm:max-h-[78vh] md:max-h-none"
+                className="h-[440px] sm:h-[500px] md:h-[400px] lg:h-[500px] w-auto object-contain iphone-bounce max-h-[68vh] sm:max-h-[74vh] md:max-h-[70vh]"
               />
             </div>
           </div>
@@ -497,8 +497,7 @@ function Home() {
               <img
                 src="/see-who-iphone.png"
                 alt="Grapevne app - See who else is going"
-                className="h-[480px] sm:h-[520px] md:h-[440px] lg:h-[540px] w-auto object-contain iphone-bounce max-h-[72vh] sm:max-h-[78vh] md:max-h-none"
-              />
+                className="h-[440px] sm:h-[500px] md:h-[400px] lg:h-[500px] w-auto object-contain iphone-bounce max-h-[68vh] sm:max-h-[74vh] md:max-h-[70vh]"              />
             </div>
           </div>
         </div>
