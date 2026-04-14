@@ -441,7 +441,7 @@ function Home() {
               <img
                 src="/never-miss-iphone.png"
                 alt="Grapevne app - Never miss what's happening"
-                className="h-[480px] sm:h-[520px] md:h-[440px] lg:h-[540px] w-auto object-contain iphone-bounce max-h-[72vh] sm:max-h-[78vh] md:max-h-none"
+                className="h-[440px] sm:h-[500px] md:h-[400px] lg:h-[500px] w-auto object-contain iphone-bounce max-h-[68vh] sm:max-h-[74vh] md:max-h-[70vh]"
               />
             </div>
           </div>
