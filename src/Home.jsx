@@ -111,10 +111,10 @@ function Home() {
     const handleScroll = () => {
       const scrollY = window.scrollY || window.pageYOffset
       const isScrollingDown = scrollY > lastScrollY.current
-      
+
       // Content transitions - only allow moving one section at a time
       let targetSection = currentSectionRef.current
-      
+
       if (isScrollingDown) {
         // Scrolling down - can only advance to next section (each feature section ~1200px)
         if (currentSectionRef.current === 0 && scrollY >= 300) {
@@ -138,17 +138,17 @@ function Home() {
           targetSection = 0
         }
       }
-      
+
       if (targetSection !== currentSectionRef.current) {
         currentSectionRef.current = targetSection
         setCurrentSection(targetSection)
       }
-      
+
       // Calculate middle step based on scroll position within section 1 (600-1500)
       if (scrollY >= 600 && scrollY < 1500) {
         setMiddleStep(0)
       }
-      
+
       // Header show/hide based on scroll direction
       // Always show at top of page
       if (scrollY < 100) {
@@ -160,7 +160,7 @@ function Home() {
         // Scrolling down - hide header
         setShowHeader(false)
       }
-      
+
       lastScrollY.current = scrollY
     }
 
@@ -193,19 +193,19 @@ function Home() {
         const dx = e.clientX - logoCenterX
         const dy = e.clientY - logoCenterY
         const distance = Math.sqrt(dx * dx + dy * dy)
-        
+
         // Max distance for full effect (viewport diagonal)
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
         const maxDistance = Math.sqrt(viewportWidth * viewportWidth + viewportHeight * viewportHeight)
         const normalizedDistance = Math.min(distance / maxDistance, 1)
-        
+
         // Inverted influence: farther = more rotation (moderate sensitivity)
         const influence = normalizedDistance * 0.35 + 0.2
-        
+
         // Direction from cursor to logo (counter-intuitive: rotate away from cursor)
         const angle = Math.atan2(dy, dx)
-        
+
         // Max rotation: moderate value between original and reduced
         const maxRotation = 60
         targetRotateY.current = Math.cos(angle) * maxRotation * influence
@@ -229,15 +229,15 @@ function Home() {
   return (
     <div className="bg-white flex flex-col" style={{ minHeight: '650vh' }}>
       {/* Background Strip - hides with navbar */}
-      <div 
+      <div
         className="fixed top-0 left-0 right-0 h-[88px] sm:h-[100px] md:h-[120px] bg-transparent z-10 transition-transform duration-300"
         style={{ transform: showHeader ? 'translateY(0)' : 'translateY(-100%)' }}
       />
-      
+
       {/* Header with Logo - shows on scroll up, hides on scroll down */}
-      <header 
+      <header
         className="pt-4 pb-4 px-4 fixed left-0 right-0 bg-transparent z-20 transition-transform duration-300"
-        style={{ 
+        style={{
           transform: showHeader ? 'translateY(0)' : 'translateY(-100%)',
           top: 0,
           paddingTop: 'max(1rem, env(safe-area-inset-top))'
@@ -265,9 +265,9 @@ function Home() {
             </div>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-6 md:pr-12 shrink-0">
-            <a 
-              href="https://apps.apple.com/us/app/grapevne/id6745459372" 
-              target="_blank" 
+            <a
+              href="https://apps.apple.com/us/app/grapevne/id6745459372"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-[13px] sm:text-base md:text-lg font-bold hover-grapevne-blue transition-colors lowercase px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center whitespace-nowrap shadow-sm"
               style={{ color: '#1a1a1a' }}
@@ -276,16 +276,16 @@ function Home() {
             </a>
             <div className="flex flex-col items-center shrink-0">
               <Link to="/" className="flex justify-center min-h-[44px] min-w-[44px] items-center">
-                <img 
-                ref={logoRef}
-                src="/filledTransparent.png" 
-                alt="Grapevne Logo" 
-                className="h-10 sm:h-14 md:h-20 lg:h-28 w-auto"
-                style={{ 
-                  transformStyle: 'preserve-3d',
-                  willChange: 'transform'
-                }}
-              />
+                <img
+                  ref={logoRef}
+                  src="/filledTransparent.png"
+                  alt="Grapevne Logo"
+                  className="h-10 sm:h-14 md:h-20 lg:h-28 w-auto"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    willChange: 'transform'
+                  }}
+                />
               </Link>
             </div>
           </div>
@@ -293,18 +293,18 @@ function Home() {
       </header>
 
       {/* Main Content - accounts for header, footer, and safe areas on iPhone */}
-      <main 
-        ref={mainRef} 
+      <main
+        ref={mainRef}
         className="fixed left-0 right-0 flex items-center justify-center overflow-hidden"
         style={{
-          top: 'calc(88px + env(safe-area-inset-top, 0px))',
+          top: 'calc(72px + env(safe-area-inset-top, 0px))',
           bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))'
         }}
       >
         {/* Trail Images - Bottom Layer (on Grapevne section) */}
         {currentSection === 4 && (
-          <div 
-            className="absolute inset-0 pointer-events-none overflow-hidden" 
+          <div
+            className="absolute inset-0 pointer-events-none overflow-hidden"
             style={{ zIndex: 1, contain: 'layout style paint' }}
           >
             {trailImages.map((img, index) => (
@@ -328,15 +328,15 @@ function Home() {
             ))}
           </div>
         )}
-        
+
         {/* Original Slogan */}
-        <div 
+        <div
           className="absolute inset-0 flex items-start justify-center md:justify-start transition-all duration-500 ease-out cursor-pointer"
           style={{
             transform: currentSection === 0 ? 'translateY(0)' : 'translateY(-100%)',
             opacity: currentSection === 0 ? 1 : 0,
             pointerEvents: currentSection === 0 ? 'auto' : 'none',
-            paddingTop: '40px',
+            paddingTop: '12px',
             zIndex: 10
           }}
           onClick={() => {
@@ -350,10 +350,10 @@ function Home() {
         >
           <div className="flex flex-col gap-3 sm:gap-4 md:gap-5 lg:gap-6 w-full max-w-2xl mx-auto px-4 sm:px-6 md:px-0 md:mx-0 md:max-w-none">
             {/* Top spacer - keeps Grapevne from sitting too high */}
-            <div className="h-8 sm:h-10 md:h-12 flex-shrink-0" />
+            <div className="h-2 sm:h-4 md:h-6 flex-shrink-0" />
             {/* Social proof pill - Partiful style */}
             <div className="flex justify-center md:justify-start md:pl-16">
-              <span 
+              <span
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium"
                 style={{ backgroundColor: 'rgba(63, 169, 245, 0.15)', color: 'var(--grapevne-blue)' }}
               >
@@ -366,7 +366,7 @@ function Home() {
                 Grapevne
               </h2>
             </div>
-            
+
             {/* Brands image grid - 2x2 on mobile, 1x5 strip on desktop */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-0 w-[100vw] relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]" style={{ maxWidth: '100vw' }}>
               <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3', filter: 'sepia(1) hue-rotate(180deg) saturate(2)' }}>
@@ -385,16 +385,16 @@ function Home() {
                 <img src="/pizza food.png" alt="" className="w-full h-full object-cover" loading="eager" decoding="async" />
               </div>
             </div>
-            
+
             {/* Tagline */}
             <div className="text-center md:text-left md:pl-16">
               <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight" style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}>
                 The feed that feeds you.
               </h2>
             </div>
-            
+
             {/* Scroll hint arrow */}
-            <div 
+            <div
               className="flex justify-center mt-6 md:mt-8 animate-bounce"
               onClick={() => window.scrollTo({ top: 300, behavior: 'smooth' })}
               role="button"
@@ -408,9 +408,9 @@ function Home() {
             </div>
           </div>
         </div>
-        
+
         {/* Middle Content - Grapevne description with animated sequence */}
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out px-5 sm:px-8 md:px-16 overflow-y-auto"
           style={{
             transform: currentSection === 1 ? 'translateY(0)' : (currentSection === 2 ? 'translateY(-100%)' : 'translateY(100%)'),
@@ -419,9 +419,9 @@ function Home() {
           }}
         >
           {/* Steps 0-4: Stack on mobile, side-by-side on desktop */}
-          <div 
+          <div
             className="absolute inset-0 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-8 md:gap-16 lg:gap-24 transition-all duration-500 py-4 md:py-0"
-            style={{ 
+            style={{
               opacity: middleStep >= 0 ? 1 : 0,
               pointerEvents: middleStep >= 0 ? 'auto' : 'none'
             }}
@@ -435,12 +435,12 @@ function Home() {
                 Push notifications when campus posts go live. No more checking emails or walking past flyers.
               </p>
             </div>
-            
+
             {/* iPhone - top on mobile for visual hierarchy */}
             <div className="flex-shrink-0 order-1 md:order-2 mt-4 md:mt-6">
-              <img 
-                src="/never-miss-iphone.png" 
-                alt="Grapevne app - Never miss what's happening" 
+              <img
+                src="/never-miss-iphone.png"
+                alt="Grapevne app - Never miss what's happening"
                 className="h-[480px] sm:h-[520px] md:h-[440px] lg:h-[540px] w-auto object-contain iphone-bounce max-h-[72vh] sm:max-h-[78vh] md:max-h-none"
               />
             </div>
@@ -448,7 +448,7 @@ function Home() {
         </div>
 
         {/* Section 2 - One swipe RSVP */}
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out px-5 sm:px-8 md:px-16 overflow-y-auto"
           style={{
             transform: currentSection === 2 ? 'translateY(-5%)' : (currentSection === 3 ? 'translateY(-100%)' : 'translateY(100%)'),
@@ -466,17 +466,17 @@ function Home() {
               </p>
             </div>
             <div className="flex-shrink-0 order-1 md:order-2 mt-4 md:mt-6">
-              <img 
-                src="/one-swipe-iphone.png" 
-                alt="Grapevne app - One swipe RSVP" 
+              <img
+                src="/one-swipe-iphone.png"
+                alt="Grapevne app - One swipe RSVP"
                 className="h-[480px] sm:h-[520px] md:h-[440px] lg:h-[540px] w-auto object-contain iphone-bounce max-h-[72vh] sm:max-h-[78vh] md:max-h-none"
               />
             </div>
           </div>
         </div>
-        
+
         {/* Section 3 - Campus footprint */}
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out px-5 sm:px-8 md:px-16 overflow-y-auto"
           style={{
             transform: currentSection === 3 ? 'translateY(-5%)' : (currentSection === 4 ? 'translateY(-100%)' : 'translateY(100%)'),
@@ -494,17 +494,17 @@ function Home() {
               </p>
             </div>
             <div className="flex-shrink-0 order-1 md:order-2 mt-4 md:mt-6">
-              <img 
-                src="/see-who-iphone.png" 
-                alt="Grapevne app - See who else is going" 
+              <img
+                src="/see-who-iphone.png"
+                alt="Grapevne app - See who else is going"
                 className="h-[480px] sm:h-[520px] md:h-[440px] lg:h-[540px] w-auto object-contain iphone-bounce max-h-[72vh] sm:max-h-[78vh] md:max-h-none"
               />
             </div>
           </div>
         </div>
-        
+
         {/* Section 4 - Download CTA with trail (Partiful/Instagram style) */}
-        <div 
+        <div
           className="absolute inset-0 flex flex-col items-center justify-center transition-all duration-500 ease-out px-5 sm:px-8 md:px-16"
           style={{
             transform: currentSection === 4 ? 'translateY(-5%)' : 'translateY(100%)',
@@ -514,15 +514,15 @@ function Home() {
           }}
         >
           <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
-            <h2 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight max-w-3xl" 
+            <h2
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight max-w-3xl"
               style={{ fontFamily: '"Futura Bold", sans-serif', color: '#1a1a1a' }}
             >
               The feed that feeds you. Download now.
             </h2>
-            <a 
-              href="https://apps.apple.com/us/app/grapevne/id6745459372" 
-              target="_blank" 
+            <a
+              href="https://apps.apple.com/us/app/grapevne/id6745459372"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium hover:opacity-90 transition-opacity mt-2"
               style={{ backgroundColor: 'var(--grapevne-blue)' }}
@@ -538,7 +538,7 @@ function Home() {
       </main>
 
       {/* Footer with ®, ™, and © symbols - Persistent */}
-      <footer 
+      <footer
         className="pt-2 sm:pt-3 px-3 sm:px-4 fixed bottom-0 left-0 right-0 bg-white z-10"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
