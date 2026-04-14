@@ -312,10 +312,10 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
       </header>
 
       {/* Main Content */}
-      <main className="py-20" style={{ paddingTop: '140px', paddingBottom: '0' }}>
-        <div className="space-y-16">
+      <main className="py-20" style={{ paddingTop: '118px', paddingBottom: '0' }}>
+        <div className="space-y-10">
           {/* Hero Section */}
-          <section className="text-left pt-12 pb-8 min-h-[600px] relative pl-8 md:pl-16 pr-8 md:pr-16">
+          <section className="text-left pt-12 pb-6 min-h-[400px] relative pl-8 md:pl-16 pr-8 md:pr-16">
             {/* Partner Pills - absolutely positioned at bottom left of hero section */}
             {partners.map((partner, index) => {
               const rotations = [-2, 1.5]
@@ -324,7 +324,7 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
               const delay = delays[index] || '0s'
 
               const leftPosition = index === 0 ? '10rem' : '2rem'
-              const bottomPosition = index === 0 ? '-3rem' : '1rem'
+              const bottomPosition = index === 0 ? '-1rem' : '2rem'
 
               return (
                 <div
@@ -377,7 +377,7 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                 className="flex flex-col gap-4 md:gap-5 lg:gap-6 relative"
                 style={getRevealStyle(0)}
             >
-              <h1 className="text-6xl md:text-7xl font-bold leading-tight -mt-2 md:-mt-6" style={{ fontFamily: '"Futura Bold", sans-serif' }}>
+              <h1 className="text-5xl md:text-6xl font-bold leading-tight -mt-2 md:-mt-6" style={{ fontFamily: '"Futura Bold", sans-serif' }}>
                 Built for <span style={{ color: 'var(--grapevne-blue)' }}>Universities.</span><br />
                 <span style={{ color: '#1a1a1a' }}>Designed for Students.</span>
               </h1>
@@ -474,7 +474,7 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                 <div
                 ref={horizontalScrollRef}
                 id="narrative-scroll"
-                className="flex gap-14 overflow-x-hidden pb-4 h-full items-start pt-36"
+                className="flex gap-14 overflow-x-hidden pb-4 h-full items-start pt-32"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                 {/* Card 1 */}
@@ -612,11 +612,11 @@ The app is launching campus-wide in Spring 2026 as part of Trinity's broader sus
                 className="max-w-7xl mx-auto grid md:grid-cols-[0.85fr_1.1fr] gap-12 md:gap-20 items-center"
                 style={getRevealStyle(2)}
             >
-              <div className="overflow-hidden md:translate-y-8">
+              <div className="overflow-visible md:translate-y-8 ml-4 md:ml-8">
                 <img
-                  src="/see-who-iphone.png"
-                  alt="Grapevne app preview"
-                  className="w-full h-auto object-cover"
+                    src="/phones.png"
+                    alt="Grapevne app preview"
+                    className="w-[420px] md:w-[520px] lg:w-[600px] max-w-none h-auto object-contain"
                 />
               </div>
 
