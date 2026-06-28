@@ -161,7 +161,7 @@ function App() {
   }, [])
 
   return (
-    <Router>
+    <Router basename="/grapevne-website">
       <ScrollToTop />
       <Analytics />
       <Routes>
