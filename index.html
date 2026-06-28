@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function() {
+        var p = new URLSearchParams(window.location.search);
+        if (p.get('mode') === 'signIn' && p.get('oobCode')) {
+          window.location.href = 'grapevne://auth/verify?link=' + encodeURIComponent(window.location.href);
+        }
+      })();
+    </script>
+    <link rel="shortcut icon" type="image/png" href="/grapevne-website/filledTransparent.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/grapevne-website/filledTransparent.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/grapevne-website/filledTransparent.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/grapevne-website/filledTransparent.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/grapevne-website/filledTransparent.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/grapevne-website/filledTransparent.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/grapevne-website/filledTransparent.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5, user-scalable=yes" />
+    <meta name="description" content="Grapevne App" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>Grapevne - grapevneapp.com</title>
+    <script type="module" crossorigin src="/grapevne-website/assets/index-8tLn0O0x.js"></script>
+    <link rel="stylesheet" crossorigin href="/grapevne-website/assets/index-CFl4jgyO.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+
